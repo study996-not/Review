@@ -1,0 +1,35 @@
+import numpy as np
+
+def angle_between_vectors(v1, v2):
+    v1_u = v1 / np.linalg.norm(v1)
+    v2_u = v2 / np.linalg.norm(v2)
+    return np.degrees(np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0)))
+
+def centroid(m1, v1, m2, v2):
+    return (m1 * v1 + m2 * v2) / (m1 + m2)
+
+def convert_jacobian_coordinates(m_A, m_B, m_C, d_AB, d_QC, theta_AB_CQ_deg):
+    vect_A = np.array([0, 0])
+    vect_B = np.array([d_AB, 0])
+    theta_AB_CQ_rad = np.radians(theta_AB_CQ_deg)
+    
+    vect_QAB = centroid(m_A, vect_A, m_B, vect_B)
+    vect_QC = np.array([d_QC * np.cos(theta_AB_CQ_rad), d_QC * np.sin(theta_AB_CQ_rad)])
+    vect_C = vect_QAB + vect_QC
+    
+    d_AC = np.hypot(*(vect_C - vect_A))
+    d_BC = np.hypot(*(vect_C - vect_B))
+    
+    vect_QAC = centroid(m_A, vect_A, m_C, vect_C)
+    vect_QB = vect_B - vect_QAC
+    d_QB = np.hypot(*vect_QB)
+    theta_AC_BQ_deg = angle_between_vectors(vect_QB, vect_C)
+    
+    vect_QBC = centroid(m_B, vect_B, m_C, vect_C)
+    vect_QA = vect_A - vect_QBC
+    d_QA = np.hypot(*vect_QA)
+    theta_BC_AQ_deg = angle_between_vectors(vect_QA, vect_C - vect_B)
+    
+    return (d_AC, d_QB, theta_AC_BQ_deg), (d_BC, d_QA, theta_BC_AQ_deg)
+
+print(convert_jacobian_coordinates(1.0, 1.0, 1.0, 2.0, 1.0, 90.0))  
